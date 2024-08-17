@@ -52,6 +52,9 @@ router.post('/login', async (req, res) => {
         req.session.userId = user._id;
         req.session.username = user.username;
 
+        // Criar o cookie da sessão
+        res.cookie('connect.sid', req.sessionID, { httpOnly: true });
+
         return res.status(200).json({ message: 'Login bem-sucedido', user: { id: user._id, username: user.username } });
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao logar o usuario' });
@@ -59,7 +62,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Rota p/logout
-router.post('/logout', (req, res) => {
+router.post('/auth/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
             return res.status(500).json({ message: 'Erro ao encerrar a sessão' });
