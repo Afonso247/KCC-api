@@ -3,6 +3,7 @@ const bycrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../model/User');
 const router = express.Router();
+const data = require('../data/data.json');
 
 // Rota p/registro
 router.post('/register', async (req, res) => {
@@ -21,7 +22,8 @@ router.post('/register', async (req, res) => {
         // Criar o novo usuario
         const newUser = new User({
             username,
-            password: hashedPassword
+            password: hashedPassword,
+            groups: []
         });
         await newUser.save();
 
@@ -56,6 +58,11 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao logar o usuario' });
     }
+});
+
+// Rota p/capturar dados em CharacterForm
+router.get('/tipagem', (req, res) => {
+    res.json(data);
 });
 
 // Middleware p/verificar o token
