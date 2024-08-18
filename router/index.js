@@ -2,7 +2,6 @@ const express = require('express');
 const bycrypt = require('bcrypt');
 const User = require('../model/User');
 const router = express.Router();
-const data = require('../data/data.json');
 
 // Rota p/registro
 router.post('/register', async (req, res) => {
@@ -70,11 +69,6 @@ router.post('/auth/logout', (req, res) => {
         res.clearCookie('connect.sid'); // Remove o cookie da sessão
         return res.status(200).json({ message: 'Logout realizado com sucesso' });
     });
-});
-
-// Rota p/capturar dados em CharacterForm
-router.get('/tipagem', (req, res) => {
-    res.json(data);
 });
 
 // Middleware para verificar se o usuário está autenticado
