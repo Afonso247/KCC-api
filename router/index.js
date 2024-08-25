@@ -2,6 +2,7 @@ const express = require('express');
 const bycrypt = require('bcrypt');
 const User = require('../model/User');
 const router = express.Router();
+const authMiddleware = require('../middleware/auth');
 
 // Rota p/registro
 router.post('/register', async (req, res) => {
@@ -71,17 +72,8 @@ router.post('/auth/logout', (req, res) => {
     });
 });
 
-// Middleware para verificar se o usuário está autenticado
-function isAuthenticated(req, res, next) {
-    console.log(req.session)
-    if (req.session && req.session.userId) {
-        return next();
-    }
-    return res.status(401).json({ message: 'Acesso não autorizado' });
-}
-
 // Exemplo de rota protegida
-router.get('/auth/check', isAuthenticated, (req, res) => {
+router.get('/auth/check', authMiddleware, (req, res) => {
     // res.status(200).json({ message: `Bem-vindo, ${req.session.username}! Você está autenticado.` });
     res.status(200).json({ authenticated: true, user: { id: req.session.userId, username: req.session.username } });
 });
