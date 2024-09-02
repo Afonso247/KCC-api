@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
         const newUser = new User({
             username,
             password: hashedPassword,
-            groups: []
+            chats: []
         });
         await newUser.save();
 
@@ -39,13 +39,13 @@ router.post('/login', async (req, res) => {
         // Verificar se o username existe
         const user = await User.findOne({ username });
         if (!user) {
-            return res.status(400).json({ message: 'Este nome de usuario nao existe' });
+            return res.status(400).json({ message: 'Nome de usuário ou senha incorreta.' });
         }
 
         // Verificar se a senha esta correta
         const checkPassword = await bycrypt.compare(password, user.password);
         if (!checkPassword) {
-            return res.status(400).json({ message: 'Senha invalida' });
+            return res.status(400).json({ message: 'Nome de usuário ou senha incorreta.' });
         }
 
         // Salvar o usuário na sessão
