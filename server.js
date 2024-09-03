@@ -6,6 +6,7 @@ const MongoStore = require('connect-mongo'); // For storing sessions in MongoDB
 const dotenv = require('dotenv');
 const routerApi = require('./router/index');
 const routerUser = require('./router/user');
+// const routerChat = require('./router/chat');
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use(session({
 // Roteamento
 app.use('/api', routerApi);
 app.use('/user', routerUser);
+// app.use('/chat', routerChat);
 
 
 const port = process.env.PORT || 3000;

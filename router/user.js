@@ -1,6 +1,7 @@
 const express = require('express');
 const bycrypt = require('bcrypt');
 const User = require('../model/User');
+const Chat = require('../model/Chat');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 
@@ -79,6 +80,9 @@ router.delete('/delete-account', authMiddleware, async (req, res) => {
           }
           res.clearCookie('connect.sid');
         });
+
+        // Excluir todos os chats do usuário
+        await Chat.deleteMany({ _id: { $in: user.chats } });
 
         await User.deleteOne({ _id: user._id });
         

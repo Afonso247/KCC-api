@@ -1,6 +1,7 @@
 const express = require('express');
 const bycrypt = require('bcrypt');
 const User = require('../model/User');
+const Chat = require('../model/Chat');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 
@@ -18,14 +19,23 @@ router.post('/register', async (req, res) => {
         const salt = await bycrypt.genSalt(10);
         const hashedPassword = await bycrypt.hash(password, salt);
 
+        // Criar um novo chat
+        const newChat = new Chat({
+            name: "Chat 1",
+            messages: [],
+            user: null
+        });
+
         // Criar o novo usuario
         const newUser = new User({
             username,
             password: hashedPassword,
-            chats: [
-                { id: 1, name: "Chat 1", messages: [] },
-            ]
+            chats: [newChat._id]
         });
+
+        // Atribuir o novo chat ao novo usuario
+        newChat.user = newUser._id;
+        await newChat.save();
         await newUser.save();
 
         return res.status(201).json({ message: 'Usuario criado com sucesso' });
