@@ -1,9 +1,8 @@
 const express = require('express');
 const bycrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const User = require('../model/User');
 const router = express.Router();
-const data = require('../data/data.json');
+const authMiddleware = require('../middleware/auth');
 
 // Rota p/registro
 router.post('/register', async (req, res) => {
@@ -23,7 +22,9 @@ router.post('/register', async (req, res) => {
         const newUser = new User({
             username,
             password: hashedPassword,
-            groups: []
+            chats: [
+                { id: 1, name: "Chat 1", messages: [] },
+            ]
         });
         await newUser.save();
 
@@ -40,50 +41,43 @@ router.post('/login', async (req, res) => {
         // Verificar se o username existe
         const user = await User.findOne({ username });
         if (!user) {
-            return res.status(400).json({ message: 'Este nome de usuario nao existe' });
+            return res.status(400).json({ message: 'Nome de usuário ou senha incorreta.' });
         }
 
         // Verificar se a senha esta correta
         const checkPassword = await bycrypt.compare(password, user.password);
         if (!checkPassword) {
-            return res.status(400).json({ message: 'Senha invalida' });
+            return res.status(400).json({ message: 'Nome de usuário ou senha incorreta.' });
         }
 
-        // Gerar o token
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: '1d'
-        });
+        // Salvar o usuário na sessão
+        req.session.userId = user._id;
+        req.session.username = user.username;
 
-        return res.status(200).json({ token, user: { id: user._id, username: user.username } });
+        // Criar o cookie da sessão
+        res.cookie('connect.sid', req.sessionID, { httpOnly: true });
+
+        return res.status(200).json({ message: 'Login bem-sucedido', user: { id: user._id, username: user.username } });
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao logar o usuario' });
     }
 });
 
-// Rota p/capturar dados em CharacterForm
-router.get('/tipagem', (req, res) => {
-    res.json(data);
+// Rota p/logout
+router.post('/auth/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).json({ message: 'Erro ao encerrar a sessão' });
+        }
+        res.clearCookie('connect.sid'); // Remove o cookie da sessão
+        return res.status(200).json({ message: 'Logout realizado com sucesso' });
+    });
 });
 
-// Middleware p/verificar o token
-function verifyToken(req, res, next) {
-    const token = req.headers['authorization'];
-    if (!token) {
-        return res.status(401).json({ message: 'Nenhum token encontrado' });
-    }
-    
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return res.status(401).json({ message: 'Token invalido' });
-    }
-}
-
-// Exemplo de rotas protegidas
-router.get('/protected', verifyToken, (req, res) => {
-    res.status(200).json({ message: 'Token valido' });
+// Exemplo de rota protegida
+router.get('/auth/check', authMiddleware, (req, res) => {
+    // res.status(200).json({ message: `Bem-vindo, ${req.session.username}! Você está autenticado.` });
+    res.status(200).json({ authenticated: true, user: { id: req.session.userId, username: req.session.username } });
 });
 
 module.exports = router;

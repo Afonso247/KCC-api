@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    groups: {
+    chats: {
         type: Array,
         default: [],
         required: true
