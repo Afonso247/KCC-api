@@ -22,7 +22,9 @@ router.post('/register', async (req, res) => {
         const newUser = new User({
             username,
             password: hashedPassword,
-            chats: []
+            chats: [
+                { id: 1, name: "Chat 1", messages: [] },
+            ]
         });
         await newUser.save();
 
