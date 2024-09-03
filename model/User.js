@@ -10,11 +10,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    chats: {
-        type: Array,
-        default: [],
-        required: true
-    }
-}, { collection: 'users' });
+    chats: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Chat'
+    }]
+}, { timestamps: true } , { collection: 'users' });
 
 module.exports = mongoose.model('User', userSchema)
