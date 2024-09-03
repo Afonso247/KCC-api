@@ -7,9 +7,9 @@ const authMiddleware = require('../middleware/auth');
 router.post('/create-chat', authMiddleware, async (req, res) => {
   const { name } = req.body;
   try {
-    const newChat = new Chat({ name, user: req.session.userId });
+    const newChat = new Chat({ name, user: { _id: req.session.userId } });
     await newChat.save();
-    res.status(201).json({ message: 'Chat criado com sucesso!' });
+    res.status(201).json({ message: 'Chat criado com sucesso!', chat: newChat });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Erro ao criar chat.' });
@@ -19,7 +19,7 @@ router.post('/create-chat', authMiddleware, async (req, res) => {
 // Rota para encontrar todos os chats associados ao usuário
 router.get('/get-chats', authMiddleware, async (req, res) => {
   try {
-    const chats = await Chat.find({ user: req.session.userId });
+    const chats = await Chat.find({ user: { _id: req.session.userId } });
     res.status(200).json({ chats });
   } catch (error) {
     console.error(error);

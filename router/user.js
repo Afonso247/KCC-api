@@ -82,7 +82,7 @@ router.delete('/delete-account', authMiddleware, async (req, res) => {
         });
 
         // Excluir todos os chats do usuário
-        await Chat.deleteMany({ _id: { $in: user.chats } });
+        await Chat.deleteMany({ user: user._id });
 
         await User.deleteOne({ _id: user._id });
         
