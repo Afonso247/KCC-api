@@ -8,6 +8,12 @@ const authMiddleware = require('../middleware/auth');
 router.post('/create-chat', authMiddleware, async (req, res) => {
   const { name } = req.body;
   try {
+    // Verificar se o usuário já tem pelo menos 10 chats existentes
+    const existingChats = await Chat.countDocuments({ user: { _id: req.session.userId } });
+    if (existingChats >= 10) {
+      return res.status(400).json({ message: 'Limite máximo de chats atingido' });
+    }
+
     const newChat = new Chat({ name, user: { _id: req.session.userId } });
     await newChat.save();
 
