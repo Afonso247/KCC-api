@@ -4,7 +4,9 @@ const cors = require('cors');
 const session = require('express-session');
 const MongoStore = require('connect-mongo'); // For storing sessions in MongoDB
 const dotenv = require('dotenv');
-const router = require('./router/index');
+const routerApi = require('./router/index');
+const routerUser = require('./router/user');
+const routerChat = require('./router/chat');
 
 dotenv.config();
 
@@ -42,7 +44,10 @@ app.use(session({
 }));
 
 // Roteamento
-app.use('/api', router);
+app.use('/api', routerApi);
+app.use('/user', routerUser);
+app.use('/chat', routerChat);
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
