@@ -43,7 +43,7 @@ router.get('/get-chats', authMiddleware, async (req, res) => {
 // Rota enviar uma mensagem
 router.post('/send-message/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { content, sender } = req.body;
+  const { content, role } = req.body;
   try {
     const chat = await Chat.findById(id);
 
@@ -51,7 +51,7 @@ router.post('/send-message/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Chat não encontrado' });
     }
 
-    chat.messages.push({ content, sender });
+    chat.messages.push({ content, role });
     await chat.save();
 
     res.status(200).json({ message: 'Mensagem enviada com sucesso!' });
