@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const routerApi = require('./router/index');
 const routerUser = require('./router/user');
 const routerChat = require('./router/chat');
+const routerAi = require('./router/ai');
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use(session({
 app.use('/api', routerApi);
 app.use('/user', routerUser);
 app.use('/chat', routerChat);
+app.use('/ai', routerAi);
 
 
 const port = process.env.PORT || 3000;
