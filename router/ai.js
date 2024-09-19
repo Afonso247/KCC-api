@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Chat = require('../model/Chat');
 const authMiddleware = require('../middleware/auth');
-const openai = require('../config/ai-config');
+const { gerarRespostaKokomai } = require('../config/ai-config');
 
 // Rota enviar uma mensagem
 router.post('/send-message/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { content, sender } = req.body;
+  const { content, role } = req.body;
   try {
     const chat = await Chat.findById(id);
 
@@ -15,19 +15,15 @@ router.post('/send-message/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Chat não encontrado' });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: content }],
-      max_tokens: 100
-    });
+    const response = await gerarRespostaKokomai(content, chat.messages);
 
-    if (!completion.choices[0].message.content) {
+    if (!response) {
       return res.status(400).json({ message: 'Houve um erro ao enviar a mensagem' });
     }
 
     chat.messages.push({ 
-      content: completion.choices[0].message.content, 
-      sender 
+      content: response, 
+      role 
     });
     await chat.save();
 

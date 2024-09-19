@@ -6,8 +6,8 @@ const chatSchema = new mongoose.Schema({
         required: true
     },
     messages: [{
+        role: String,
         content: String,
-        sender: String,
         timestamp: { type: Date, default: Date.now }
     }],
     user: {
