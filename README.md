@@ -4,7 +4,11 @@ Esta aplicação back-end faz parte de um projeto chamado "Kokomi's Mindspace", 
 
 ## Notas de Atualização
 
-`v1.0.0`* - Versão inicial do projeto back-end
+`v1.0.1` *       
+- Documentação e indentação do código
+
+`v1.0.0` 
+- Versão inicial do projeto front-end
 
 ## Índice
 
