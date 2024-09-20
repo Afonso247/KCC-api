@@ -9,6 +9,7 @@ const routerUser = require('./router/user');
 const routerChat = require('./router/chat');
 const routerAi = require('./router/ai');
 
+
 dotenv.config();
 
 const app = express();
