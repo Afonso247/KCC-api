@@ -8,7 +8,9 @@ const authMiddleware = require('../middleware/auth');
 // Rota p/trocar nome
 router.put('/change-username', authMiddleware, async (req, res) => {
     const { username, newUsername } = req.body;
+
     try {
+        // Validações de entrada e do nome de usuário
         if (!newUsername) {
             return res.status(400).json({ message: 'Por favor, forneça um novo nome de usuário.' });
         }
@@ -21,53 +23,60 @@ router.put('/change-username', authMiddleware, async (req, res) => {
             return res.status(400).json({ message: 'O novo nome de usuário deve ser diferente do atual.' });
         }
 
-      user.username = newUsername;
-      req.session.username = newUsername;
+        // Atualizar o nome de usuário
+        user.username = newUsername;
+        req.session.username = newUsername;
 
-      await user.save();
-      req.session.save();
+        await user.save();
+        req.session.save();
   
-      return res.status(200).json({ message: 'Nome de usuário atualizado com sucesso.' });
+        return res.status(200).json({ message: 'Nome de usuário atualizado com sucesso.' });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Erro ao atualizar o nome de usuário.' });
+        console.error(error);
+        return res.status(500).json({ message: 'Erro ao atualizar o nome de usuário.' });
     }
 });
 
 // Rota p/atualizar senha
 router.put('/change-password', authMiddleware, async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  try {
-      const user = await User.findById(req.session.userId);
-      if (!user) {
-          return res.status(400).json({ message: 'Usuário não encontrado.' });
-      }
+    const { currentPassword, newPassword } = req.body;
 
-      const checkPassword = await bycrypt.compare(currentPassword, user.password);
-      if (!checkPassword) {
-          return res.status(400).json({ message: 'Senha atual incorreta.' });
-      }
+    try {
+        // Validações de entrada e da senha atual
+        const user = await User.findById(req.session.userId);
+        if (!user) {
+            return res.status(400).json({ message: 'Usuário não encontrado.' });
+        }
 
-      if (currentPassword === newPassword) {
-          return res.status(400).json({ message: 'A nova senha deve ser diferente da atual.' });
-      }
+        const checkPassword = await bycrypt.compare(currentPassword, user.password);
+        if (!checkPassword) {
+            return res.status(400).json({ message: 'Senha atual incorreta.' });
+        }
 
-      const salt = await bycrypt.genSalt(10);
-      const hashedPassword = await bycrypt.hash(newPassword, salt);
+        if (currentPassword === newPassword) {
+            return res.status(400).json({ message: 'A nova senha deve ser diferente da atual.' });
+        }
 
-      user.password = hashedPassword;
-      await user.save();
+        // Criar o hash da nova senha
+        const salt = await bycrypt.genSalt(10);
+        const hashedPassword = await bycrypt.hash(newPassword, salt);
 
-      return res.status(200).json({ message: 'Senha atualizada com sucesso.' });
-  } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Erro ao atualizar a senha.' });
-  }
+        // Atualizar a senha
+        user.password = hashedPassword;
+        await user.save();
+
+        return res.status(200).json({ message: 'Senha atualizada com sucesso.' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Erro ao atualizar a senha.' });
+    }
 });
 
 // Rota p/excluir conta
 router.delete('/delete-account', authMiddleware, async (req, res) => {
+    
     try {
+        // Verificar se o usuário existe
         const user = await User.findById(req.session.userId);
         if (!user) {
             return res.status(400).json({ message: 'Usuário não encontrado.' });

@@ -7,6 +7,7 @@ const authMiddleware = require('../middleware/auth');
 // Rota para criar um novo chat
 router.post('/create-chat', authMiddleware, async (req, res) => {
   const { name } = req.body;
+
   try {
     // Verificar se o usuário já tem pelo menos 10 chats existentes
     const existingChats = await Chat.countDocuments({ user: { _id: req.session.userId } });
@@ -14,6 +15,7 @@ router.post('/create-chat', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Limite máximo de chats atingido' });
     }
 
+    // Criar o novo chat
     const newChat = new Chat({ name, user: { _id: req.session.userId } });
     await newChat.save();
 
@@ -29,8 +31,8 @@ router.post('/create-chat', authMiddleware, async (req, res) => {
 
 // Rota para encontrar todos os chats associados ao usuário
 router.get('/get-chats', authMiddleware, async (req, res) => {
-  try {
 
+  try {
     const chats = await Chat.find({ user: { _id: req.session.userId } });
     res.status(200).json({ chats });
 
@@ -40,10 +42,11 @@ router.get('/get-chats', authMiddleware, async (req, res) => {
   }
 });
 
-// Rota enviar uma mensagem
+// Rota para o usuário enviar uma mensagem
 router.post('/send-message/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   const { content, role } = req.body;
+
   try {
     const chat = await Chat.findById(id);
 
@@ -51,6 +54,7 @@ router.post('/send-message/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Chat não encontrado' });
     }
 
+    // Envia a mensagem
     chat.messages.push({ content, role });
     await chat.save();
 
@@ -65,12 +69,14 @@ router.post('/send-message/:id', authMiddleware, async (req, res) => {
 router.put('/rename-chat/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
+  
   try {
     const chat = await Chat.findById(id);
     if (!chat) {
       return res.status(404).json({ message: 'Chat não encontrado' });
     }
 
+    // Renomear o chat
     chat.name = name;
     await chat.save();
 
@@ -84,16 +90,19 @@ router.put('/rename-chat/:id', authMiddleware, async (req, res) => {
 // Rota para excluir um chat
 router.delete('/delete-chat/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
+
   try {
     const chat = await Chat.findById(id);
 
     if (!chat) {
       return res.status(404).json({ message: 'Chat não encontrado' });
     }
+    // Verificar se o usuário tem permissão para excluir este chat
     if (!chat.user._id.equals(req.session.userId)) {
       return res.status(403).json({ message: 'Você não tem permissão para excluir este chat' });
     }
 
+    // Excluir o chat
     await Chat.deleteOne({ _id: id });
     await User.updateOne({ _id: req.session.userId }, { $pull: { chats: id } });
 

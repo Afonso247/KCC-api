@@ -17,16 +17,17 @@ async function gerarRespostaKokomai(message, chatHistory, onData) {
         const completion = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
-              { role: "system", content: kokomai },
-              ...chatHistory,
-              { role: "user", content: message }
+                { role: "system", content: kokomai },
+                ...chatHistory,
+                { role: "user", content: message }
             ],
             stream: true
         });
 
+        // stream dos dados
         for await (const part of completion) {
             if (part.choices[0].delta?.content) {
-              onData(part.choices[0].delta.content);
+                onData(part.choices[0].delta.content);
             }
         }
         
