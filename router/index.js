@@ -7,13 +7,19 @@ const authMiddleware = require('../middleware/auth');
 
 // Rota p/registro
 router.post('/register', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
 
     try {
         // Verificar se o username existe
         const userExistente = await User.findOne({ username });
         if (userExistente) {
             return res.status(400).json({ message: 'Este nome de usuario ja existe' });
+        }
+
+        // Verificar se o email existe
+        const emailExistente = await User.findOne({ email });
+        if (emailExistente) {
+            return res.status(400).json({ message: 'Este email ja existe' });
         }
 
         // Criar o hash da senha
@@ -30,6 +36,7 @@ router.post('/register', async (req, res) => {
         // Criar o novo usuario
         const newUser = new User({
             username,
+            email,
             password: hashedPassword,
             chats: [newChat._id]
         });
