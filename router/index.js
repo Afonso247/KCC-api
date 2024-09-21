@@ -54,19 +54,28 @@ router.post('/register', async (req, res) => {
 
 // Rota p/login
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { userEntry, password } = req.body;
     
     try {
-        // Verificar se o username existe
-        const user = await User.findOne({ username });
+        // Verificar se o userEntry é um nome de usuário ou um e-mail
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isEmail = emailRegex.test(userEntry);
+        
+        let user;
+        if (isEmail) {
+            user = await User.findOne({ email: userEntry });
+        } else {
+            user = await User.findOne({ username: userEntry });
+        }
+        
         if (!user) {
-            return res.status(400).json({ message: 'Nome de usuário ou senha incorreta.' });
+            return res.status(400).json({ message: 'Credenciais incorretas.' });
         }
 
         // Verificar se a senha esta correta
         const checkPassword = await bycrypt.compare(password, user.password);
         if (!checkPassword) {
-            return res.status(400).json({ message: 'Nome de usuário ou senha incorreta.' });
+            return res.status(400).json({ message: 'Credenciais incorretas.' });
         }
 
         // Salvar o usuário na sessão
