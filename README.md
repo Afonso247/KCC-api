@@ -4,7 +4,10 @@ Esta aplicação back-end faz parte de um projeto chamado "Kokomi's Mindspace", 
 
 ## Notas de Atualização
 
-`v1.0.1` *       
+`v1.1.0` *
+- Usuários podem agora inserir e-mail em seu cadastro
+
+`v1.0.1`      
 - Documentação e indentação do código
 
 `v1.0.0` 
