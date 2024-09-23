@@ -37,6 +37,36 @@ router.put('/change-username', authMiddleware, async (req, res) => {
     }
 });
 
+// Rota p/trocar e-mail
+router.put('/change-email', authMiddleware, async (req, res) => {
+    const { currentEmail, newEmail } = req.body;
+
+    try {
+        // Validações de entrada e do e-mail
+        const user = await User.findById(req.session.userId);
+        if (!user) {
+            return res.status(400).json({ message: 'E-mail não encontrado.' });
+        }
+
+        if (user.email != currentEmail) {
+            return res.status(400).json({ message: 'Por favor, insira o e-mail atual correto.' });
+        }
+
+        if (newEmail === user.email) {
+            return res.status(400).json({ message: 'O novo e-mail deve ser diferente do atual.' });
+        }
+
+        // Atualizar o e-mail
+        user.email = newEmail;
+        await user.save();
+  
+        return res.status(200).json({ message: 'E-mail atualizado com sucesso.' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Erro ao atualizar o e-mail.' });
+    }
+});
+
 // Rota p/atualizar senha
 router.put('/change-password', authMiddleware, async (req, res) => {
     const { currentPassword, newPassword } = req.body;
