@@ -18,7 +18,13 @@ const userSchema = new mongoose.Schema({
     chats: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Chat'
-    }]
+    }],
+    resetToken: {
+        type: String
+    },
+    resetTokenExpiration: {
+        type: Date
+    }
 }, { timestamps: true } , { collection: 'users' });
 
 module.exports = mongoose.model('User', userSchema)
