@@ -1,9 +1,23 @@
 const express = require('express');
 const bycrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
+const dotenv = require('dotenv');
 const User = require('../model/User');
 const Chat = require('../model/Chat');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
+
+dotenv.config();
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // use false para STARTTLS; true para SSL na porta 465
+    auth: {
+      user: process.env.SENDER_EMAIL,
+      pass: process.env.SENDER_APP_PASSWORD,
+    }
+});
 
 // Rota p/registro
 router.post('/register', async (req, res) => {
@@ -88,6 +102,82 @@ router.post('/login', async (req, res) => {
         return res.status(200).json({ message: 'Login bem-sucedido', user: { id: user._id, username: user.username } });
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao logar o usuario' });
+    }
+});
+
+// Rota p/recuperar senha
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        // Verificar se o email existe
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'Email não encontrado.' });
+        }
+
+        // Gerar um token de recuperação
+        const token = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetToken = token;
+        user.resetTokenExpiration = Date.now() + 3600000;
+        await user.save();
+
+        console.log("Token gerado:", token);
+
+        // Enviar um e-mail com o token gerado
+        if(process.env.NODE_ENV === 'production') {
+            const mailOptions = {
+                from: 'afonsoh.dev@gmail.com',
+                to: email,
+                subject: 'Recuperação de senha',
+                text: `Olá, você solicitou a recuperação de sua senha. Seu token de recuperação é: ${token}`
+            };
+        
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                console.error(error);
+                return res.status(500).json({ message: 'Erro ao enviar o email.' });
+                } else {
+                console.log('Email enviado com sucesso!');
+                return res.status(200).json({ message: 'Token gerado com sucesso.' });
+                }
+            });
+        }
+
+        return res.status(200).json({ message: 'Token gerado com sucesso.' });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Erro ao enviar o email.' });
+    }
+});
+
+// Rota p/redefinir senha
+router.post('/reset-password', async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    try {
+        // Verificar se o token existe
+        const user = await User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } });
+        if (!user) {
+            return res.status(400).json({ message: 'Token inválido.' });
+        }
+
+        // Criar o hash da nova senha
+        const salt = await bycrypt.genSalt(10);
+        const hashedPassword = await bycrypt.hash(newPassword, salt);
+
+        // Atualizar a senha
+        user.password = hashedPassword;
+        user.resetToken = null;
+        user.resetTokenExpiration = null;
+        await user.save();
+
+        return res.status(200).json({ message: 'Senha atualizada com sucesso.' });
+
+    } catch (error) {    
+        console.error(error);
+        return res.status(500).json({ message: 'Erro ao atualizar a senha.' });
     }
 });
 
