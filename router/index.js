@@ -1,9 +1,23 @@
 const express = require('express');
 const bycrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
+const dotenv = require('dotenv');
 const User = require('../model/User');
 const Chat = require('../model/Chat');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
+
+dotenv.config();
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // use false para STARTTLS; true para SSL na porta 465
+    auth: {
+      user: process.env.SENDER_EMAIL,
+      pass: process.env.SENDER_APP_PASSWORD,
+    }
+});
 
 // Rota p/registro
 router.post('/register', async (req, res) => {
@@ -110,23 +124,27 @@ router.post('/forgot-password', async (req, res) => {
 
         console.log("Token gerado:", token);
 
-        return res.status(200).json({ message: 'Token gerado com sucesso.' });
+        // Enviar um e-mail com o token gerado
+        if(process.env.NODE_ENV === 'production') {
+            const mailOptions = {
+                from: 'afonsoh.dev@gmail.com',
+                to: email,
+                subject: 'Recuperação de senha',
+                text: `Olá, você solicitou a recuperação de sua senha. Seu token de recuperação é: ${token}`
+            };
+        
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                console.error(error);
+                return res.status(500).json({ message: 'Erro ao enviar o email.' });
+                } else {
+                console.log('Email enviado com sucesso!');
+                return res.status(200).json({ message: 'Token gerado com sucesso.' });
+                }
+            });
+        }
 
-        // // Enviar o email com o token de recuperação
-        // const transporter = require('../config/mailer');
-        // const mailOptions = {
-        //     from: 'lXbqA@example.com',
-        //     to: email,
-        //     subject: 'Recuperação de senha',
-        //     text: `Seu token de recuperação é: ${token}`
-        // };
-        // transporter.sendMail(mailOptions, (error, info) => {
-        //     if (error) {
-        //         console.error(error);
-        //         return res.status(500).json({ message: 'Erro ao enviar o email.' });
-        //     }
-        //     return res.status(200).json({ message: 'Email enviado com sucesso.' });
-        // });
+        return res.status(200).json({ message: 'Token gerado com sucesso.' });
 
     } catch (error) {
         console.error(error);
