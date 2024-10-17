@@ -82,9 +82,12 @@ SENDER_APP_PASSWORD={A senha de app da sua conta do e-mail.}
 
 ```env
 PORT=3000
+NODE_ENV="development"
 DATABASE_URL=mongodb://127.0.0.1:27017/minha_base_de_dados
 SESSION_SECRET=secretosuperseguro
 OPENAI_API_KEY=sua-chave-api-aqui
+SENDER_EMAIL="seuemailaqui@gmail.com"
+SENDER_APP_PASSWORD="sua-senha-de-app-aqui"
 ```
 
 Certifique-se de não compartilhar seu arquivo `.env` publicamente, especialmente valores como `SESSION_SECRET` e `OPENAI_API_KEY`. O arquivo `.env` deve ser incluído no `.gitignore` para evitar exposição de informações sensíveis.
