@@ -4,7 +4,10 @@ Esta aplicação back-end faz parte de um projeto chamado "Kokomi's Mindspace", 
 
 ## Notas de Atualização
 
-`v1.1.0` *
+`v1.2.0` *
+- Implementado uma feature de recuperação de senha do usuário
+
+`v1.1.0`
 - Usuários podem agora inserir e-mail em seu cadastro
 
 `v1.0.1`      
@@ -59,6 +62,8 @@ Crie um arquivo `.env` na raiz do seu projeto e insira os seguintes valores:
 PORT={Porta do servidor. Evite a porta 5173, já que é a porta utilizada pela aplicação frontend.}
      {Recomendo utilizar a porta 3000 para o backend, já que as requisições HTTP da aplicação frontend serão por esta porta.}
 
+NODE_ENV={Definição de ambiente. Defina a variável em "development" se você estiver rodando o projeto localmente.}
+
 DATABASE_URL={URL do seu banco de dados MongoDB. Normalmente seria "mongodb://127.0.0.1:27017/[nome_do_database]"}
 
 SESSION_SECRET={Código secreto usado para gerenciar as sessões de usuário. Gere uma string segura e armazene aqui.} 
@@ -66,6 +71,11 @@ SESSION_SECRET={Código secreto usado para gerenciar as sessões de usuário. Ge
 
 OPENAI_API_KEY={Sua chave da API OpenAI para que a funcionalidade de IA funcione.} 
                {Certifique-se de ter créditos suficientes na OpenAI antes de rodar a aplicação.}
+
+SENDER_EMAIL={O e-mail que irá enviar mensagens para o e-mail do usuário. (Ex: p/recuperação de senha)}
+             {Recomendo utilizar uma conta do Gmail para esta função.}
+SENDER_APP_PASSWORD={A senha de app da sua conta do e-mail.}
+                    {No Gmail, você pode definir a sua senha de app na sua Conta do Google, em: Segurança > Como você faz login no Google > Verificação em duas etapas > Ative a Verificação em duas etapas > Senhas de app}
 ```
 
 **Exemplo:**
@@ -134,13 +144,14 @@ Esta aplicação foi desenvolvida utilizando as seguintes tecnologias principais
 - **Bcrypt:** Biblioteca para criptografia de senhas, garantindo maior segurança.
 - **CORS:** Middleware para lidar com solicitações cross-origin, permitindo que a aplicação interaja com outras origens.
 - **dotenv:** Carrega variáveis de ambiente a partir de um arquivo `.env`, facilitando a configuração de ambientes.
+- **nodemailer:** Biblioteca para o envio de e-mail para usuários.
 - **OpenAI:** Biblioteca para integrar a API da OpenAI para dar vida a KokomAI.
 
 ### Funcionalidades Principais
 
 A aplicação oferece as seguintes funcionalidades principais:
 
-- **Autenticação:** Configuração de sessão e middleware para autenticação de usuários.
+- **Autenticação:** Configuração de sessão e middleware para autenticação de usuários, incluindo uma feature de recuperação de senha.
 - **CRUD de Usuário:** Rotas para gerenciar usuários, incluindo a criação, leitura, atualização e exclusão.
 - **CRUD de Chat:** Rotas para gerenciar chats, incluindo a criação, leitura, atualização e exclusão.
 - **Interação com IA:** Rotas e funcionalidades dedicadas para interagir com a KokomAI, permitindo funcionalidades como o streaming de dados da IA em tempo real.
