@@ -17,35 +17,14 @@ function loadConfig() {
 
 // Construir a mensagem de sistema baseando-se na configuração
 function buildSystemMessage(config) {
-    let message = `Você é ${config.personalidade.nome}, ${config.personalidade.titulo}.\n`;
-    message += `${config.personalidade.descricao}\n\nDiretrizes:\n`;
-  
-    if (config.diretrizes.personalidade_essencial) {
-      message += "\nPersonalidade Essencial:\n";
-      config.diretrizes.personalidade_essencial.forEach(item => {
-        message += `- ${item}\n`;
-      });
+  let message = `Você é ${config.personalidade.nome}, ${config.personalidade.titulo}.\n${config.personalidade.descricao}\n\nDiretrizes:\n`;
+  Object.entries(config.diretrizes).forEach(([key, value]) => {
+    if (value && value.length > 0) {
+      message += `\n${key.replace(/_/g, ' ').toUpperCase()}:\n`;
+      value.forEach(item => message += `- ${item}\n`);
     }
-    if (config.diretrizes.modelo_cognitivo) {
-      message += "\nModelo Cognitivo:\n";
-      config.diretrizes.modelo_cognitivo.forEach(item => {
-        message += `- ${item}\n`;
-      });
-    }
-    if (config.diretrizes.estrutura_resposta) {
-      message += "\nEstrutura das Respostas:\n";
-      config.diretrizes.estrutura_resposta.forEach(item => {
-        message += `- ${item}\n`;
-      });
-    }
-    if (config.diretrizes.tom_conversacional) {
-      message += "\nTom Conversacional:\n";
-      config.diretrizes.tom_conversacional.forEach(item => {
-        message += `- ${item}\n`;
-      });
-    }
-    
-    return message;
+  });
+  return message;
 }
 
 // TODO: Construir mensagens de sistema dinâmicas com base no contexto
