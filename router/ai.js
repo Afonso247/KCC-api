@@ -4,7 +4,7 @@ const Chat = require('../model/Chat');
 const authMiddleware = require('../middleware/auth');
 const { gerarRespostaKokomai } = require('../config/ai-config');
 
-// Rota para a KokomAI enviar uma mensagem
+// Rota para o chatbot enviar uma mensagem
 router.post('/send-message/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   const { content, role } = req.body;
@@ -25,21 +25,39 @@ router.post('/send-message/:id', authMiddleware, async (req, res) => {
       'Connection': 'keep-alive'
     });
 
-    // Gera a resposta da KokmAI, iniciando o data streaming
-    await gerarRespostaKokomai(content, chat.messages, (data) => {
-      kokomaiResponse += data;
-      res.write(`data: ${JSON.stringify(data)}\n\n`);
-    });
+    const isFirstMessage = chat.messages.length === 0;
+    if (isFirstMessage) {
+      // Se for a primeira mensagem, solicita à IA uma saudação que pergunte sobre o tema
+      const initialPrompt = "Esta é a primeira mensagem do chat. Por favor, apresente-se e pergunte ao usuário sobre qual tema ele gostaria de conversar.";
+      
+      await gerarRespostaKokomai(initialPrompt, [], (data) => {
+        kokomaiResponse += data;
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      });
 
-    // Descomente a linha abaixo p/ debug
-    // console.log(kokomaiResponse);
+      // Ao concluir o data streaming, envia a mensagem criada para o banco
+      chat.messages.push({ 
+        content: kokomaiResponse, 
+        role 
+      });
+      await chat.save();
+    } else {
+      // Caso contrário, gera a resposta normalmente do chatbot
+      await gerarRespostaKokomai(content, chat.messages, (data) => {
+        kokomaiResponse += data;
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      });
 
-    // Ao concluir o data streaming, envia a mensagem criada para o banco
-    chat.messages.push({ 
-      content: kokomaiResponse, 
-      role 
-    });
-    await chat.save();
+      // Descomente a linha abaixo p/ debug
+      // console.log(kokomaiResponse);
+
+      // Ao concluir o data streaming, envia a mensagem criada para o banco
+      chat.messages.push({ 
+        content: kokomaiResponse, 
+        role 
+      });
+      await chat.save();
+    }
 
     res.write('event: close\ndata: \n\n');
     res.end();
