@@ -27,13 +27,23 @@ function buildSystemMessage(config) {
   return message;
 }
 
-// TODO: Construir mensagens de sistema dinâmicas com base no contexto
+// Construir mensagens de sistema dinâmicas com base no contexto
 function buildDynamicSystemMessage(config, context) {
     let baseMessage = buildSystemMessage(config);
-    // Exemplo: caso o contexto indique tristeza, adicionAR uma mensagem motivacional
-    if (context && context.emocao === 'tristeza') {
-      baseMessage += "\nMensagem Adicional: 'Até nas tempestades mais fortes, a luz sempre encontra seu caminho'.";
+    
+    // Adiciona contexto do tema do chat
+    if (context && context.tema && context.tema !== 'Sem assunto') {
+      baseMessage += `\n\nCONTEXTO DO CHAT:\n- Este chat é sobre o tema: ${context.tema}\n- Mantenha suas respostas relevantes a este tema.\n`;
     }
+    
+    // Modo de identificação de tema - instruções especiais
+    if (context && context.modo === 'identificacao_tema') {
+      baseMessage = `Você é uma assistente especializada em identificar temas de conversas.
+      Sua tarefa é analisar a mensagem fornecida e identificar o tema principal em até 3 palavras.
+      Responda APENAS com o tema identificado, sem explicações ou textos adicionais.
+      Seja específico e direto.`;
+    }
+    
     return baseMessage;
 }
 
