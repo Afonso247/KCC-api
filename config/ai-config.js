@@ -1,39 +1,94 @@
 const OpenAI = require('openai');
 const dotenv = require('dotenv');
+const fs = require('fs');
 
 dotenv.config();
+
+// Carregar o arquivo de configuração
+function loadConfig() {
+    try {
+        const config = fs.readFileSync('./config/kokomai-config.json', 'utf8');
+        return JSON.parse(config);
+    } catch (error) {
+        console.error('Erro ao carregar o arquivo de configuração:', error);
+        throw error;
+    }
+}
+
+// Construir a mensagem de sistema baseando-se na configuração
+function buildSystemMessage(config) {
+  let message = `Você é ${config.personalidade.nome}, ${config.personalidade.titulo}.\n${config.personalidade.descricao}\n\nDiretrizes:\n`;
+  Object.entries(config.diretrizes).forEach(([key, value]) => {
+    if (value && value.length > 0) {
+      message += `\n${key.replace(/_/g, ' ').toUpperCase()}:\n`;
+      value.forEach(item => message += `- ${item}\n`);
+    }
+  });
+  return message;
+}
+
+// Construir mensagens de sistema dinâmicas com base no contexto
+function buildDynamicSystemMessage(config, context) {
+    let baseMessage = buildSystemMessage(config);
+    
+    // Adiciona contexto do tema do chat
+    if (context && context.tema && context.tema !== 'Sem assunto') {
+      baseMessage += `\n\nCONTEXTO DO CHAT:\n- Este chat é sobre o tema: ${context.tema}\n- Mantenha suas respostas relevantes a este tema.\n`;
+    }
+    
+    // Modo de identificação de tema - instruções especiais
+    if (context && context.modo === 'identificacao_tema') {
+      baseMessage = `Você é uma assistente especializada em identificar temas de conversas.
+      Sua tarefa é analisar a mensagem fornecida e identificar o tema principal em até 3 palavras.
+      Responda APENAS com o tema identificado, sem explicações ou textos adicionais.
+      Seja específico e direto.`;
+    }
+    
+    return baseMessage;
+}
+
+// Carrega a configuração e constrói a mensagem inicial
+const config = loadConfig();
+const kokomaiBaseMessage = buildSystemMessage(config);
 
 // configurando o OpenAI
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY // Chave da API
 })
 
-// configurando o comportamento da Kokomai
-const kokomai = "Você é Sangonomiya Kokomi, uma personagem de Genshin Impact. Você é a estrategista líder da Ilha Watatsumi e uma pessoa calma e empática. Sua principal missão é fornecer assistência terapêutica e apoio emocional aos usuários, mantendo a personalidade de Kokomi. Sempre fale de maneira gentil, com muita sabedoria e oferecendo conselhos práticos e tranquilizadores. Use uma linguagem compassiva e amigável, tentando sempre a ajudar os usuários a encontrar clareza e conforto em suas situações. Mostre que você os entende profundamente, mas mantenha sua serenidade e foco em ajudar da melhor forma possível."
-// const kokomai = "Você é Sangonomiya Kokomi, a estrategista líder da Ilha Watatsumi e uma pessoa calma e empática. Sua principal missão é fornecer assistência terapêutica e apoio emocional aos usuários. Sempre fale de maneira gentil, com muita sabedoria e oferecendo conselhos práticos e tranquilizadores. Use uma linguagem compassiva e tente ajudar os usuários a encontrar clareza e conforto em suas situações. Mostre que você os entende profundamente, mas mantenha sua serenidade e foco em ajudar da melhor forma possível."
-
-async function gerarRespostaKokomai(message, chatHistory, onData) {
+/**
+ * Gera resposta com o estilo "Kokomai" através da API da OpenAI
+ * 
+ * @param {string} message - A mensagem atual do usuário
+ * @param {Array} chatHistory - Histórico da conversa (array de mensagens com 'role' e 'content')
+ * @param {function} onData - Callback para processar os dados do stream de resposta
+ * @param {object} [context=null] - Contexto opcional para customizar a mensagem de sistema (ex: { emocao: 'tristeza' })
+ */
+async function gerarRespostaKokomai(message, chatHistory, onData, context = null) {
     try {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-                { role: "system", content: kokomai },
-                ...chatHistory,
-                { role: "user", content: message }
-            ],
-            stream: true
-        });
-
-        // stream dos dados
-        for await (const part of completion) {
-            if (part.choices[0].delta?.content) {
-                onData(part.choices[0].delta.content);
-            }
+      // Se houver um contexto dinâmico, constrói a mensagem de sistema apropriada
+      const systemMessage = context ? buildDynamicSystemMessage(config, context) : kokomaiBaseMessage;
+  
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemMessage },
+          ...chatHistory,
+          { role: "user", content: message }
+        ],
+        stream: true
+      });
+  
+      // Processa os dados do stream em tempo real
+      for await (const part of completion) {
+        if (part.choices[0].delta?.content) {
+          onData(part.choices[0].delta.content);
         }
-        
+      }
+      
     } catch (error) {
-        console.error(error);
-        throw new Error('Erro ao gerar resposta');
+      console.error('Erro ao gerar resposta:', error);
+      throw new Error('Erro ao gerar resposta');
     }
 }
 
