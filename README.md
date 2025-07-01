@@ -4,7 +4,10 @@ Esta aplicação back-end faz parte de um projeto chamado "Kokomi's Mindspace", 
 
 ## Notas de Atualização
 
-`v1.2.0` *
+`v1.3.0` *
+- Implementado um novo comportamento mais robusto para a IA Chatbot
+
+`v1.2.0`
 - Implementado uma feature de recuperação de senha do usuário
 
 `v1.1.0`
