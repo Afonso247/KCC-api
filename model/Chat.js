@@ -5,11 +5,6 @@ const chatSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    topic: {
-        type: String,
-        default: 'Sem assunto',
-        required: true
-    },
     messages: [{
         role: String,
         content: String,

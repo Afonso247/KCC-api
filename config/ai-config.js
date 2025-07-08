@@ -27,26 +27,6 @@ function buildSystemMessage(config) {
   return message;
 }
 
-// Construir mensagens de sistema dinâmicas com base no contexto
-function buildDynamicSystemMessage(config, context) {
-    let baseMessage = buildSystemMessage(config);
-    
-    // Adiciona contexto do tema do chat
-    if (context && context.tema && context.tema !== 'Sem assunto') {
-      baseMessage += `\n\nCONTEXTO DO CHAT:\n- Este chat é sobre o tema: ${context.tema}\n- Mantenha suas respostas relevantes a este tema.\n`;
-    }
-    
-    // Modo de identificação de tema - instruções especiais
-    if (context && context.modo === 'identificacao_tema') {
-      baseMessage = `Você é uma assistente especializada em identificar temas de conversas.
-      Sua tarefa é analisar a mensagem fornecida e identificar o tema principal em até 3 palavras.
-      Responda APENAS com o tema identificado, sem explicações ou textos adicionais.
-      Seja específico e direto.`;
-    }
-    
-    return baseMessage;
-}
-
 // Carrega a configuração e constrói a mensagem inicial
 const config = loadConfig();
 const kokomaiBaseMessage = buildSystemMessage(config);
@@ -62,17 +42,13 @@ const openai = new OpenAI({
  * @param {string} message - A mensagem atual do usuário
  * @param {Array} chatHistory - Histórico da conversa (array de mensagens com 'role' e 'content')
  * @param {function} onData - Callback para processar os dados do stream de resposta
- * @param {object} [context=null] - Contexto opcional para customizar a mensagem de sistema (ex: { emocao: 'tristeza' })
  */
-async function gerarRespostaKokomai(message, chatHistory, onData, context = null) {
+async function gerarRespostaKokomai(message, chatHistory, onData) {
     try {
-      // Se houver um contexto dinâmico, constrói a mensagem de sistema apropriada
-      const systemMessage = context ? buildDynamicSystemMessage(config, context) : kokomaiBaseMessage;
-  
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: systemMessage },
+          { role: "system", content: kokomaiBaseMessage },
           ...chatHistory,
           { role: "user", content: message }
         ],
