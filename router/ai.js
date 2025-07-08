@@ -28,13 +28,17 @@ router.post('/send-message/:id', authMiddleware, async (req, res) => {
 
     const isFirstMessage = chat.messages.length === 0;
 
+    // Identificar tema para categorização
     if (!isFirstMessage && content && (chat.topic === 'Sem assunto' || !chat.topic)) {
       try {
-        // Tenta identificar o tema do chat com base na mensagem do usuário
-        temaChatIdentificado = await identificarTemaChat(content, id);
-        
-        // Envia o tema identificado para o frontend atualizar o nome do chat
-        res.write(`data: ${JSON.stringify({tipo: 'tema_identificado', tema: temaChatIdentificado})}\n\n`);
+        // Executa a identificação do tema em paralelo (não bloqueia a resposta)
+        identificarTemaChat(content, id).then(tema => {
+          temaChatIdentificado = tema;
+          // Envia o tema identificado para o frontend atualizar o nome do chat
+          res.write(`data: ${JSON.stringify({tipo: 'tema_identificado', tema: temaChatIdentificado})}\n\n`);
+        }).catch(error => {
+          console.error('Falha ao identificar tema:', error);
+        });
       } catch (error) {
         console.error('Falha ao identificar tema:', error);
       }
@@ -56,19 +60,11 @@ router.post('/send-message/:id', authMiddleware, async (req, res) => {
       });
       await chat.save();
     } else {
-      // Construir contexto com o tema do chat
-      const contextoChat = {
-        tema: temaChatIdentificado || chat.topic
-      };
-      
-      // Caso contrário, gera a resposta normalmente do chatbot
-      const promptComTema = temaChatIdentificado ? 
-        `[Tema do chat: ${temaChatIdentificado}] ${content}` : content;
-
-      await gerarRespostaKokomai(promptComTema, chat.messages, (data) => {
+      // Gera a resposta normalmente do chatbot
+      await gerarRespostaKokomai(content, chat.messages, (data) => {
         kokomaiResponse += data;
         res.write(`data: ${JSON.stringify(data)}\n\n`);
-      }, contextoChat);
+      });
 
       // Descomente a linha abaixo p/ debug
       // console.log(kokomaiResponse);
@@ -79,21 +75,6 @@ router.post('/send-message/:id', authMiddleware, async (req, res) => {
         role 
       });
       await chat.save();
-
-      // Se ainda não conseguiu identificar o tema, envia mensagem pedindo ao usuário para esclarecer
-      if (!temaChatIdentificado && (chat.topic === 'Sem assunto' || !chat.topic)) {
-        const esclarecer = "\n\nPoderia me contar mais sobre o que gostaria de conversar? Assim posso entender melhor o tema deste chat.";
-        kokomaiResponse += esclarecer;
-        
-        // Atualiza a última mensagem com o esclarecimento
-        await Chat.findOneAndUpdate(
-          { _id: id, "messages.role": "assistant" },
-          { $set: { "messages.$.content": kokomaiResponse } },
-          { sort: { "messages.timestamp": -1 }, new: true }
-        );
-        
-        res.write(`data: ${JSON.stringify({tipo: 'mensagem', conteudo: esclarecer})}\n\n`);
-      }
     }
 
     res.write('event: close\ndata: \n\n');

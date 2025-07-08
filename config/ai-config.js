@@ -31,11 +31,6 @@ function buildSystemMessage(config) {
 function buildDynamicSystemMessage(config, context) {
     let baseMessage = buildSystemMessage(config);
     
-    // Adiciona contexto do tema do chat
-    if (context && context.tema && context.tema !== 'Sem assunto') {
-      baseMessage += `\n\nCONTEXTO DO CHAT:\n- Este chat é sobre o tema: ${context.tema}\n- Mantenha suas respostas relevantes a este tema.\n`;
-    }
-    
     // Modo de identificação de tema - instruções especiais
     if (context && context.modo === 'identificacao_tema') {
       baseMessage = `Você é uma assistente especializada em identificar temas de conversas.
@@ -62,7 +57,7 @@ const openai = new OpenAI({
  * @param {string} message - A mensagem atual do usuário
  * @param {Array} chatHistory - Histórico da conversa (array de mensagens com 'role' e 'content')
  * @param {function} onData - Callback para processar os dados do stream de resposta
- * @param {object} [context=null] - Contexto opcional para customizar a mensagem de sistema (ex: { emocao: 'tristeza' })
+ * @param {object} [context=null] - Contexto opcional para customizar a mensagem de sistema (ex: { modo: 'identificacao_tema' })
  */
 async function gerarRespostaKokomai(message, chatHistory, onData, context = null) {
     try {
