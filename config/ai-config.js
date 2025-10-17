@@ -3,12 +3,15 @@ const dotenv = require('dotenv');
 const fs = require('fs');
 
 dotenv.config();
+let cachedConfig = null;
 
 // Carregar o arquivo de configuração
 function loadConfig() {
     try {
+        if (cachedConfig) return cachedConfig;
         const config = fs.readFileSync('./config/kokomai-config.json', 'utf8');
-        return JSON.parse(config);
+        cachedConfig = JSON.parse(config);
+        return cachedConfig;
     } catch (error) {
         console.error('Erro ao carregar o arquivo de configuração:', error);
         throw error;
