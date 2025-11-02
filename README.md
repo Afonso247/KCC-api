@@ -1,6 +1,6 @@
 # KCC-api
 
-Esta aplicação back-end faz parte de um projeto chamado "Kokomi's Mindspace", em que a KokomAI, a inteligência artificial principal do projeto, atende usuários e fornece assistência terapeutica para quem precisa.
+Esta aplicação back-end faz parte de um projeto chamado "Ana's Mindspace", em que a Ana, a inteligência artificial principal do projeto, atende usuários e fornece assistência terapeutica para quem precisa.
 
 ## Notas de Atualização
 
@@ -151,7 +151,7 @@ Esta aplicação foi desenvolvida utilizando as seguintes tecnologias principais
 - **CORS:** Middleware para lidar com solicitações cross-origin, permitindo que a aplicação interaja com outras origens.
 - **dotenv:** Carrega variáveis de ambiente a partir de um arquivo `.env`, facilitando a configuração de ambientes.
 - **nodemailer:** Biblioteca para o envio de e-mail para usuários.
-- **OpenAI:** Biblioteca para integrar a API da OpenAI para dar vida a KokomAI.
+- **OpenAI:** Biblioteca para integrar a API da OpenAI para dar vida a Ana.
 
 ### Funcionalidades Principais
 
@@ -160,7 +160,7 @@ A aplicação oferece as seguintes funcionalidades principais:
 - **Autenticação:** Configuração de sessão e middleware para autenticação de usuários, incluindo uma feature de recuperação de senha.
 - **CRUD de Usuário:** Rotas para gerenciar usuários, incluindo a criação, leitura, atualização e exclusão.
 - **CRUD de Chat:** Rotas para gerenciar chats, incluindo a criação, leitura, atualização e exclusão.
-- **Interação com IA:** Rotas e funcionalidades dedicadas para interagir com a KokomAI, permitindo funcionalidades como o streaming de dados da IA em tempo real.
+- **Interação com IA:** Rotas e funcionalidades dedicadas para interagir com a Ana, permitindo funcionalidades como o streaming de dados da IA em tempo real.
 
 ## Contato
 
